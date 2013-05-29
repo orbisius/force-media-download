@@ -5,23 +5,20 @@
  * @license LGPL
  * @author Slavi Marinov
  * @url http://orbisius.com
+ * @version 1.0.0
 */
 
 // full path
 try {
     $obj = new Orbisius_Force_Download();
-    
-    if (!$obj->is_supported()) {
-        die('Invalid download file.');
-    }
-
+    $obj->check_is_supported();
     $obj->download_file();
 } catch (Exception $e) {
-    die('Error.');
+    die('Error: ' . $e->getMessage());
 }
 
 /**
- * 
+ *
  */
 class Orbisius_Force_Download {
     private $req_url = '';
@@ -41,7 +38,7 @@ class Orbisius_Force_Download {
         'cer' => 'application/x-x509-ca-cert',
         'vcf' => 'application/text/x-vCard',
         'vcard' => 'application/text/x-vCard',
-        
+
         // doc
         "tsv" => "text/tab-separated-values",
         "txt" => "text/plain",
@@ -56,7 +53,7 @@ class Orbisius_Force_Download {
         'pptx' => 'application/vnd.ms-powerpoint',
         'mdb' => 'application/x-msaccess',
         'mpp' => 'application/vnd.ms-project',
-        
+
         'js' => 'text/javascript',
         'css' => 'text/css',
         'htm' => 'text/html',
@@ -90,7 +87,7 @@ class Orbisius_Force_Download {
     );
 
     /**
-     * 
+     *
      */
     public function __construct() {
         $req_uri = $_SERVER['REQUEST_URI'];
@@ -101,19 +98,23 @@ class Orbisius_Force_Download {
     }
 
     /**
-     *
+     * Throws an exception if not supported.
      */
-    public function is_supported() {
-        $supported = true;
-        
-        if ($this->req_file == basename(__FILE__) // req is index.php
-                || (stripos($this->req_file, '..') !== false) // want to go 1 level 1
-                || (stripos($this->req_file, '.') === false) // no extension
-                || !is_file($this->base_dir . DIRECTORY_SEPARATOR . $this->req_file)) {
-            $supported = false;
+    public function check_is_supported() {
+		$file_decoded = urldecode($this->req_file);
+
+        if (        $this->req_file == basename(__FILE__) // req is index.php
+				|| (stripos($file_decoded, '..') !== false) // want to go 1 level 1
+                || (stripos($file_decoded, '.') === false) // no extension
+				) {
+            throw new Exception('Invalid file.');
         }
-        
-        return $supported;
+
+        if (!is_file($this->base_dir . DIRECTORY_SEPARATOR . $this->req_file)
+						&& !is_file($this->base_dir . DIRECTORY_SEPARATOR . $file_decoded)) {
+			header('HTTP/1.0 404 Not Found');
+			throw new Exception('File Not Found.');
+		}
     }
 
     /**
@@ -138,7 +139,7 @@ class Orbisius_Force_Download {
             }
         }
 
-        // 
+        // We have to put our signature here.
         header('X-Download-Software: Orbisius ForceMediaDownload');
 
         // SSL
@@ -158,6 +159,11 @@ class Orbisius_Force_Download {
         $file = empty($file) ? $this->req_file : $file;
         $file = $this->base_dir . '/' . $file;
 
+		// we were sent an encoded filename e.g. %20 for spaces
+		if (!is_file($file)) {
+			$file = urldecode($file);
+		}
+
         $last_modified_time = filemtime($file);
         $etag = md5_file($file);
 
@@ -172,7 +178,9 @@ class Orbisius_Force_Download {
         }
 
         // the actual file that will be downloaded
-        $download_file_name = basename($file);
+        $download_file_name = $file;
+        $download_file_name = basename($download_file_name);
+        $download_file_name = urldecode($download_file_name); // e.g. %20 in the filename
         $default_content_type = 'application/octet-stream';
 
         $ext = end(explode('.', $download_file_name));
