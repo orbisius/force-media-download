@@ -59,6 +59,6 @@ Author
 Svetoslav Marinov (SLAVI)
 
 Site: http://orbisius.com
-Twitter: http://facebook.com/orbisius
-Facebook: http://twitter.com/orbisius
+Facebook: http://facebook.com/orbisius
+Twitter: http://twitter.com/orbisius
 
