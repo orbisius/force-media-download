@@ -46,3 +46,19 @@ Support
 
 If you find a bug or have a suggestion create an issue at github.
 
+
+Other Products?
+---------------
+
+If you are curious what other products we have released visit: http://club.orbisius.com/products/
+
+
+Author
+------
+
+Svetoslav Marinov (SLAVI)
+
+Site: http://orbisius.com
+Twitter: http://facebook.com/orbisius
+Facebook: http://twitter.com/orbisius
+
